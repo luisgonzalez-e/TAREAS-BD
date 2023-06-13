@@ -1,0 +1,109 @@
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+
+model trabajos {
+  id    Int     @id @default(autoincrement())
+  descripcion String? @db.VarChar(45)
+  sueldo Int 
+  person persona_tiene_trabajo[]
+}
+
+model personajes {
+  id    Int     @id @default(autoincrement())
+  nombre String @db.VarChar(45)
+  fuerza Int 
+  fecha_nacimiento DateTime @db.Date
+  objeto String? @db.VarChar(30)
+
+
+  kart karts[]
+  person persona_tiene_trabajo[]
+  hab_reino personaje_habita_reino[]
+}
+
+model karts {
+  id    Int     @id @default(autoincrement())
+  modelo String @db.VarChar(45)
+  color String @db.VarChar(45)
+  velocidad_maxima Int?
+
+
+  ids personajes @relation(fields: [id_personaje], references: [id])
+  id_personaje Int
+}
+
+model persona_tiene_trabajo {
+  id_trabajo Int
+  id_personaje Int
+  fecha_inicio DateTime @db.Date
+  fecha_termino DateTime? @db.Date
+  @@id([id_trabajo, id_personaje])
+
+
+  ids personajes @relation(fields: [id_personaje], references: [id])
+  ids_trabajo trabajos @relation(fields: [id_trabajo], references: [id])
+}
+
+model reinos {
+  id    Int     @id @default(autoincrement())
+  nombre String @db.VarChar(45)
+  ubicacion String @db.VarChar(45)
+  superficie Int
+
+  hab_reino personaje_habita_reino[]
+  reino_diplo_1 diplomacias[] @relation("miembro1")
+  reino_diplo_2 diplomacias[] @relation("miembro2")
+  inter defensa_reino[]
+}
+
+
+
+
+model personaje_habita_reino {
+  id_personaje Int
+  id_reino Int
+  fecha_registro DateTime @db.Timestamp()
+  es_gobernante Boolean
+  @@id([id_personaje, id_reino])
+
+
+  ids personajes @relation(fields: [id_personaje], references: [id])
+  ids_reino reinos @relation(fields: [id_reino], references: [id])
+}
+
+model diplomacias {
+  id_reino_1 Int
+  id_reino_2 Int
+  es_aliado Boolean
+  @@id([id_reino_1, id_reino_2])
+
+
+  ids_reino_1 reinos @relation("miembro1",fields: [id_reino_1], references: [id])
+  ids_reino_2 reinos @relation("miembro2",fields: [id_reino_2], references: [id])
+}
+
+
+
+model defensas {
+  id    Int     @id @default(autoincrement())
+  defensa String @db.VarChar(45)
+  inter defensa_reino[]
+}
+
+model defensa_reino {
+  id_reino Int
+  id_defensa Int
+  @@id([id_reino, id_defensa])
+
+
+  ids_reino reinos @relation(fields: [id_reino], references: [id])
+  ids_defensa defensas @relation(fields: [id_defensa], references: [id])
+}
